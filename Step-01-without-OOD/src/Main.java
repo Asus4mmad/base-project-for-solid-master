@@ -13,7 +13,7 @@ public class Main {
         Reservation res = new Reservation(room, customer, 2);
 
         ReservationService service = new ReservationService();
-        service.makeReservation(res, PaymentMethods.PAYPAL, Notifier.EMAIL); //Or SMS: service.makeReservation(res, PaymentMethods.PAYPAL, Notifier.SMS);
+        service.makeReservation(res, PaymentMethods.PAYPAL, Notifier.EMAIL); //Or SMS: service.makeReservation(res, PaymentMethods.ONSITE, Notifier.SMS);
         
     }
 }
