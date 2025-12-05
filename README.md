@@ -20,22 +20,22 @@
   <tbody>
     <tr>
       <td>1</td>
-      <td>—</td>
-      <td>—</td>
+      <td><code>PaymentProcessor</code></td>
+      <td>اضافه شدن متد <code>payInPerson(double amount)</code> و چاپ <code>Paid in person: ...</code></td>
       <td><code>ReservationService.java</code></td>
       <td>اضافه شدن شاخه <code>case SMS</code> و ساخت <code>SmsSender</code> و فراخوانی <code>sendSms(res.customer.mobile, "Your reservation confirmed!")</code> و چاپ پیام موفقیت.</td>
     </tr>
     <tr>
       <td>2</td>
-      <td>—</td>
-      <td>—</td>
+      <td><code>ReservationService.java</code></td>
+      <td>اضافه شدن <code>case ONSITE</code> و فراخوانی <code>paymentProcessor.payInPerson(res.totalPrice());</code> و <code>break;</code></td>
       <td><code>MessageSender.java</code></td>
       <td>اضافه شدن  متد: <code>public void sendSms(String phoneNumber, String message);</code></td>
     </tr>
     <tr>
       <td>3</td>
-      <td>—</td>
-      <td>—</td>
+      <td><code>Main</code></td>
+      <td><code>PaymentMethods.</code> شامل <code>PAYPAL, CARD, CASH, ONSITE</code> است و حالت مدنظر <code>ONSITE</code> می‌باشد. نمونه: <code>service.makeReservation(res, PaymentMethods.PAYPAL, Notifier.SMS);</code></td>
       <td><code>EmailSender.java</code></td>
       <td>اضافه شدن <code>@Override</code> برای <code>sendSms(...)</code> (بدون پیاده‌سازی واقعی، چون SMS برای EmailSender در دسترس نیست).</td>
     </tr>
@@ -48,5 +48,6 @@
     </tr>
   </tbody>
 </table>
+
 
 
