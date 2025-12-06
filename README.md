@@ -276,3 +276,26 @@ reservationService.makeReservation(reservation, "card");
 ```
 
 ---
+
+
+<div dir="rtl" align="right">
+
+## نتیجه‌گیری (اگر از ابتدا SOLID رعایت می‌شد)
+
+در طراحی فعلی (طبق **متن اول**) برای اضافه‌کردن دو قابلیت «پرداخت در محل (ONSITE)» و «ارسال پیامک (SMS)»، مجبور شدیم چند کلاس موجود را تغییر دهیم:
+
+- **پرداخت ONSITE:** تغییر در <code>PaymentProcessor</code> + <code>ReservationService</code> + <code>Main</code> ⟵ یعنی <b>۳ کلاس</b>
+- **ارسال SMS:** تغییر در <code>ReservationService</code> + <code>MessageSender</code> + <code>EmailSender</code> + <code>Main</code> ⟵ یعنی <b>۴ کلاس</b>
+
+بنابراین در مجموع <b>۷ تغییر روی کلاس‌های موجود</b> انجام شده است.
+
+اما اگر از ابتدا اصول SOLID رعایت می‌شد (طبق ساختار پیشنهادی در **متن دوم**)، برای افزودن این دو قابلیت:
+- نیازی به تغییر در <code>ReservationService</code> و <code>PaymentProcessor</code> و همچنین تحمیل متدهای نامرتبط به <code>EmailSender</code> نبود.
+- فقط کافی بود <b>دو کلاس جدید</b> اضافه شود:
+  - <code>OnSitePaymentProvider implements PaymentProvider</code>
+  - <code>SmsSender implements SmsNotifier</code>
+- و در نهایت فقط <b>یک تنظیم/تزریق ساده</b> در <code>Main</code> (Composition Root) انجام می‌شد.
+
+
+
+</div>
