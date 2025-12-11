@@ -35,9 +35,15 @@ public class ReservationService {
 
        switch (this.notifier){
            case EMAIL :
-           EmailSender emailSender = new EmailSender();
-           emailSender.sendEmail(res.customer.email, "Your reservation confirmed!");
-           break;
+               EmailSender emailSender = new EmailSender();
+               emailSender.sendEmail(res.customer.email, "Your reservation confirmed!");
+               System.out.println("Email sent successfully!");
+               break;
+           case SMS :
+               SmsSender smsSender = new SmsSender();
+               smsSender.sendSms(res.customer.mobile, "Your reservation confirmed!");
+               System.out.println("SMS sent successfully!");
+               break;
            default:
                System.out.println("There is no Message Provider");
        }
