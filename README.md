@@ -68,3 +68,211 @@
 | **PLK** | مورد نقض  | `ReservationService` | دسترسی‌های زنجیره‌ای زیاد دارد (مثل `res.customer.name` و `res.room.number`) و بیش از حد به ساختار داخلی مدل‌ها وابسته است. |
 | **CRP** | مورد برقراری  | پکیج مدل‌ها (`Customer`, `Room`, `LuxuryRoom`, `Reservation`) | این کلاس‌ها معمولاً با هم استفاده می‌شوند و کنار هم بودنشان منطقی است. |
 | **CRP** | مورد نقض  | `ReservationService` + کلاس‌های پرداخت/اعلان | وابستگی‌ها فشرده است؛ تغییر/استفاده از یک بخش معمولاً بقیه بخش‌ها را هم درگیر می‌کند و reuse سخت‌تر می‌شود. |
+
+
+
+
+
+
+
+## 🎯 چه تغییراتی اعمال شد؟
+
+### قبل از Refactoring
+```java
+// همه چیز توی یک کلاس! 😱
+class ReservationService {
+    - رزرو می‌کنه
+    - پرداخت انجام میده
+    - ایمیل و SMS می‌فرسته
+    - صورت‌حساب می‌سازه
+    - تخفیف حساب می‌کنه
+}
+```
+
+### بعد از Refactoring
+```java
+// هر کلاس یک مسئولیت واضح داره ✨
+ReservationService  → فقط رزرو
+PaymentProcessor    → فقط پرداخت
+EmailSender         → فقط ایمیل
+SmsSender           → فقط اس‌ام‌اس
+InvoiceService      → فقط صورت‌حساب
+DiscountService     → فقط محاسبه تخفیف
+```
+
+---
+
+## 🧩 ساختار جدید پروژه
+
+### 📂 Interfaces (انتزاع‌ها)
+- **`PaymentProvider`** - قرارداد مشترک برای تمام روش‌های پرداخت
+- **`EmailNotifier`** - فقط برای ارسال ایمیل
+- **`SmsNotifier`** - فقط برای ارسال اس‌ام‌اس
+
+### 🔧 Implementations (پیاده‌سازی‌ها)
+- `CardPaymentProvider` - پرداخت با کارت
+- `CashPaymentProvider` - پرداخت نقدی
+- `PayPalPaymentProvider` - پرداخت با پی‌پال
+- `OnSitePaymentProvider` - پرداخت در محل
+- `EmailSender` - ارسال ایمیل 
+- `SmsSender` - ارسال اس‌ام‌اس 
+
+### 🏭 Factories & Services
+- `PaymentProviderFactory` - می‌گه کدوم روش پرداخت استفاده بشه
+- `PaymentProcessor` - فرآیند پرداخت رو اجرا می‌کنه
+- `NotificationService` - مدیریت اعلان‌ها (ایمیل/اس‌ام‌اس)
+- `DiscountService` - محاسبه تخفیف
+- `InvoiceService` - صدور صورت‌حساب
+
+---
+
+## 🎨 اصول SOLID در عمل
+
+### 1️⃣ **S**ingle Responsibility Principle (SRP)
+> هر کلاس فقط یک دلیل برای تغییر داشته باشه
+
+**قبل:**
+```java
+ReservationService {
+    makeReservation()
+    processPayment()      // ❌ مسئولیت اضافه
+    sendEmail()           // ❌ مسئولیت اضافه
+    calculateDiscount()   // ❌ مسئولیت اضافه
+}
+```
+
+**بعد:**
+```java
+ReservationService { makeReservation() }     // ✅ فقط رزرو
+PaymentProcessor { processPayment() }        // ✅ فقط پرداخت
+EmailSender { sendEmail() }                  // ✅ فقط ایمیل
+DiscountService { calculateDiscount() }      // ✅ فقط تخفیف
+```
+
+---
+
+### 2️⃣ **O**pen/Closed Principle (OCP)
+> باز برای توسعه، بسته برای تغییر
+
+**قبل:**
+```java
+// برای اضافه کردن روش پرداخت جدید باید کل کد رو تغییر بدیم 😞
+if (method.equals("card")) { ... }
+else if (method.equals("cash")) { ... }
+else if (method.equals("paypal")) { ... }
+```
+
+**بعد:**
+```java
+// فقط یه کلاس جدید اضافه می‌کنیم، هیچ کد قبلی تغییر نمی‌کنه! 🎉
+class BitcoinPaymentProvider implements PaymentProvider {
+    public boolean processPayment(double amount) {
+        // منطق پرداخت بیت‌کوین
+    }
+}
+```
+
+---
+
+### 3️⃣ **L**iskov Substitution Principle (LSP)
+> باید بتونیم والد رو با فرزندش جایگزین کنیم
+
+```java
+PaymentProvider provider = new CardPaymentProvider();
+// یا
+PaymentProvider provider = new PayPalPaymentProvider();
+
+// هر دو یکسان کار می‌کنن، رفتار ثابته ✅
+provider.processPayment(100.0);
+```
+
+---
+
+### 4️⃣ **I**nterface Segregation Principle (ISP)
+> اینترفیس‌های کوچک و تخصصی بهتره از یه اینترفیس بزرگ
+
+**قبل:**
+```java
+interface MessageSender {
+    void sendEmail();    // ❌ SmsSender مجبوره اینو پیاده کنه!
+    void sendSms();      // ❌ EmailSender مجبوره اینو پیاده کنه!
+}
+```
+
+**بعد:**
+```java
+interface EmailNotifier {
+    void sendEmail();    // ✅ فقط برای ایمیل
+}
+
+interface SmsNotifier {
+    void sendSms();      // ✅ فقط برای اس‌ام‌اس
+}
+```
+
+---
+
+### 5️⃣ **D**ependency Inversion Principle (DIP)
+> وابستگی به انتزاع، نه جزئیات
+
+**قبل:**
+```java
+class ReservationService {
+    private EmailSender emailSender = new EmailSender();  // ❌ وابستگی مستقیم
+}
+```
+
+**بعد:**
+```java
+class ReservationService {
+    private final EmailNotifier emailNotifier;  // ✅ وابستگی به interface
+    
+    public ReservationService(EmailNotifier emailNotifier) {
+        this.emailNotifier = emailNotifier;
+    }
+}
+```
+
+---
+
+### ➕ **Principle of Least Knowledge** (PLK / Law of Demeter)
+> با دوستات حرف بزن، نه با دوستای دوستات!
+
+**قبل:**
+```java
+String name = reservation.getCustomer().getName();  // ❌ زنجیره دسترسی
+```
+
+**بعد:**
+```java
+String name = reservation.getCustomerName();  // ✅ helper method
+```
+
+---
+
+## 🚀 نحوه استفاده
+
+```java
+// 1. ساخت وابستگی‌ها
+EmailNotifier emailNotifier = new EmailSender();
+SmsNotifier smsNotifier = new SmsSender();
+NotificationService notificationService = new NotificationService(emailNotifier, smsNotifier);
+DiscountService discountService = new DiscountService();
+InvoiceService invoiceService = new InvoiceService();
+
+// 2. ساخت سرویس رزرو با Dependency Injection
+ReservationService reservationService = new ReservationService(
+    notificationService,
+    discountService,
+    invoiceService
+);
+
+// 3. استفاده
+Customer customer = new Customer("علی", "ali@example.com", "09123456789");
+Room room = new Room(101, "VIP", 500.0);
+Reservation reservation = new Reservation(customer, room, 3);
+
+reservationService.makeReservation(reservation, "card");
+```
+
+---
